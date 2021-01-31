@@ -1,0 +1,39 @@
+@name Turret with Ammo and Reserve Ammo
+@inputs Fire Reload ResetReserve AllowPartialReloading
+@outputs TurretFire Rounds ReserveRounds
+@persist RoundsPerClip
+@trigger Fire Reload ResetReserve
+
+if (first() | duped()) {
+  Rounds = 200
+  RoundsPerClip = 200
+  ReserveRounds = 600
+  TurretFire = 0
+  ResetReserve = 0
+  AllowPartialReloading = 1 #[allow reloading (without loss) even if rounds > 0]#
+  timer("roundcounter", 0)
+}
+
+if (clk("roundcounter")) {
+  if (Fire == 1 & Rounds > 0) {
+    Rounds -= 1
+    TurretFire = 1  
+  }
+  else {
+    TurretFire = 0  
+  }
+  timer("roundcounter", 50) #[0.05 s; default delay of Wired Turret]#
+}
+
+if (~Reload) {
+  if (Rounds == 0 | AllowPartialReloading == 1) {
+    local AmountToSubtract = min(RoundsPerClip - Rounds, ReserveRounds)
+    Rounds += AmountToSubtract
+    ReserveRounds -= AmountToSubtract
+    TurretFire = 0
+  }
+}
+
+if (~ResetReserve & ResetReserve == 1) {
+  ReserveRounds = 600
+}
