@@ -1,0 +1,72 @@
+jmp _main
+
+message:
+  db "Hello, World!                 ", 0 //1 line is 30 chars long (not including null char)
+message2:
+  db "Test Text", 0
+message3:
+  db "Flashing Text", 0
+message4:
+  db "Text with cursor", 0
+curpos: //Cursor position
+  db 65536 //Start of non-CPU memory (attached Console Screen via CPU's MemBus)
+//CPU has addresses 0-65535, attached Console Screen adds addresses 65536-67584
+
+WriteString: //ESI - String pointer, EDX - Format
+  mov eax, [curpos] //Get cursor position
+  WSLoop:
+    cmp [esi], 0 //Terminate on char 0
+    je WSLoopEnd
+    mov [eax], [esi] //Output char
+    inc eax
+    mov [eax], edx //Output char format
+    inc eax
+    inc esi
+    jmp WSLoop
+  WSLoopEnd:
+    mov [curpos], eax //Save cursor position
+    ret
+
+//WriteStrLine counts assuming current line is blank, so it cannot be used if WriteString ended in the middle of a line.
+WriteStrLine: //Writes a string with a newline (printing spaces for rest of the line) after it
+  mov eax, [curpos]
+  mov ebx, 0 //Character counter
+  WSLLoop:
+    cmp [esi], 0 //Terminate on char 0
+    je WSLLoopStrEnd
+    mov [eax], [esi] //Output char
+    inc eax
+    mov [eax], edx //Output char param
+    inc eax
+    inc esi
+    add ebx, 2 //Two bytes for char and format
+    jmp WSLLoop
+  WSLLoopStrEnd:
+    cmp ebx, 60
+    jge WSLLoopEnd
+    mov [eax], 32 //Keep adding spaces until line is 60 bytes long
+    inc eax
+    mov [eax], edx //Use same format settings for spaces
+    inc eax
+    add ebx, 2
+    jmp WSLLoopStrEnd
+  WSLLoopEnd:
+    mov [curpos], eax
+    ret
+
+_main:
+  mov esi, message
+  mov edx, 0000999 //Flash, RGB background, RGB foreground
+  call WriteString //message is padded to 60 chars so WriteStrLine is not needed
+  mov esi, message2
+  mov edx, 0000999
+  call WriteStrLine
+  mov esi, message3
+  mov edx, 1000999
+  call WriteStrLine
+  mov esi, message4
+  mov edx, 0000090 //Green on black
+  call WriteStrLine
+  mov [65536 + 2046], 1
+  mov [65536 + 2045], 212
+  int 1 //halt
