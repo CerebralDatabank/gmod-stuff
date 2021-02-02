@@ -67,6 +67,6 @@ _main:
   mov esi, message4
   mov edx, 0000090 //Green on black
   call WriteStrLine
-  mov [65536 + 2046], 1
-  mov [65536 + 2045], 212
+  mov [65536 + 2046], 1 //Enable blinking cursor
+  mov [65536 + 2045], 212 //Set blinking cursor position
   int 1 //halt
