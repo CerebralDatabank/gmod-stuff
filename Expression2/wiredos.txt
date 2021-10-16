@@ -1,0 +1,332 @@
+@name WireDOS
+@inputs CScr:wirelink Clk Reset KbdMem
+@outputs SigOut1 SigOut2 SigOut3 SigOut4
+@persist CScrCurPos:vector2 CScrFGColor CScrBGColor IsCmdRunning CurrentInput:string CurrentRunner:string Users:array UserCreds:array UserPerms:array CurrentUserIndex UserIndexToLogin MaskInput Files:table
+@trigger all
+
+WDOS_VERSION = "v0.2.8"
+
+function void clearScr() {
+  CScr[2041] = 1 # clear screen
+  CScrCurPos = vec2(0, 0)
+  CScr[2045] = 0
+}
+
+function void shiftRows() {
+  CScr[2038] = 1 # shift all rows up by 1 row
+  CScr[2045] = CScr[2045] - (CScr[2045] % 30) # Move blinking cursor to left
+}
+
+function void writeLine(Str:string) {
+  CScr:writeString(Str, CScrCurPos:x(), CScrCurPos:y(), CScrFGColor, CScrBGColor, 0)
+  if (CScrCurPos:y() == 17) {
+    CScrCurPos = CScrCurPos:setX(0)
+    shiftRows()
+  }
+  else {
+    CScrCurPos = vec2(0, CScrCurPos:y() + 1)
+    CScr[2045] = (60 * CScrCurPos:y()) + (2 * CScrCurPos:x())
+  }
+  if ((CScrCurPos:x() % 29) != 0) {
+    CScrCurPos = vec2(CScrCurPos:x() % 29, CScrCurPos:y() + 1)
+  }
+}
+
+function void writeStr(Str:string) {
+  if (toByte(Str) == 10) {
+    writeLine("")  
+  }
+  else {
+    CScr:writeString(Str, CScrCurPos:x(), CScrCurPos:y(), CScrFGColor, CScrBGColor, 0)
+    CScrCurPos = CScrCurPos:setX(CScrCurPos:x() + Str:length())
+    if (CScrCurPos:x() > 29) {
+      CScrCurPos = CScrCurPos:setX(0)
+      if (CScrCurPos:y() == 17) {
+        shiftRows()
+      }
+      else {
+        CScrCurPos = CScrCurPos:setY(CScrCurPos:y() + 1)
+      }
+    }
+    CScr[2045] = CScr[2045] + (2 * Str:length())
+  }
+}
+
+# For returning control from program to user (allowing keyboard input)
+
+function void returnCtrl() {
+  IsCmdRunning = 0
+  if (CurrentRunner == "") {
+    writeStr("exec>")
+  }
+}
+
+function void runCommand(Cmd:string) {
+  Cmd = Cmd:replace("\n", ""):trim()
+  local Args = Cmd:explode(" ")
+  IsCmdRunning = 1
+  CurrentInput = ""
+  if (Cmd == "help") {
+    writeLine("help : Show help info")
+    writeLine("cls : Clear screen")
+    writeLine("dir : List all files")
+    writeLine("sigout : List SigOut values")
+    writeLine("sigout [i] [n] : change")
+    writeLine("SigOut i to number n")
+    writeLine("userlist : List all users")
+    writeLine("about : Show system info")
+    writeLine("reset : Reset system")
+    returnCtrl()
+  }
+  elseif (Cmd == "cls") {
+    clearScr()
+    CScrCurPos = vec2(0, 0)
+    CScr[2045] = 0
+    returnCtrl()
+  }
+  elseif (Cmd == "dir" & UserPerms[CurrentUserIndex, string]:find("d") > 0) {
+    writeLine(Files:count() + " file(s)")
+    writeLine("ID: filename [size]")
+    foreach (K, V:string = Files) {
+      writeLine(K:upper() + " [" + Files[K, string]:length() + "]") # TODO: Fix
+    }
+    returnCtrl()
+  }
+  elseif (Cmd == "dir" & UserPerms[CurrentUserIndex, string]:find("d") <= 0) {
+    writeLine("Insufficient permissions.")
+    returnCtrl()
+  }
+  elseif (Args[1, string] == "read") {
+    if (Args:count() == 2) {
+      if (Files:exists(Args[2, string])) {
+        clearScr()
+        writeLine(Args[2, string]:upper())
+        writeLine(Files[Args[2, string], string])
+        returnCtrl()
+      }
+      else {
+        writeLine("Invalid filename")
+        returnCtrl()
+      }
+    }
+    else {
+      writeLine("Invalid args")
+      returnCtrl()
+    }
+  }
+  elseif (Cmd == "about") {
+    writeLine("WireDOS")
+    writeLine("Version: " + WDOS_VERSION)
+    writeLine("Made by CerebralDatabank")
+    writeLine("https://tiny.cc/cdb")
+    returnCtrl()
+  }
+  elseif (Args[1, string] == "sigout" & UserPerms[CurrentUserIndex, string]:find("s") > 0) {
+    if (Args:count() == 1) {
+      writeLine("SigOut status:")
+      writeLine("SigOut1: " + SigOut1 + " (wired to " + ->SigOut1 + ")")
+      writeLine("SigOut2: " + SigOut2 + " (wired to " + ->SigOut2 + ")")
+      writeLine("SigOut3: " + SigOut3 + " (wired to " + ->SigOut3 + ")")
+      writeLine("SigOut4: " + SigOut4 + " (wired to " + ->SigOut4 + ")")
+      returnCtrl()
+    }
+    elseif (Args:count() == 3) {
+      switch (Args[2, string]:toNumber()) {
+        case 1,
+        SigOut1 = Args[3, string]:toNumber()
+        writeLine("Changed SigOut1 to: " + SigOut1)
+        break
+        case 2,
+        SigOut2 = Args[3, string]:toNumber()
+        writeLine("Changed SigOut2 to: " + SigOut2)
+        break
+        case 3,
+        SigOut3 = Args[3, string]:toNumber()
+        writeLine("Changed SigOut3 to: " + SigOut3)
+        break
+        case 4,
+        SigOut4 = Args[3, string]:toNumber()
+        writeLine("Changed SigOut4 to: " + SigOut4)
+        break
+        default,
+        writeLine("Invalid SigOut number")
+        break
+      }
+      returnCtrl()
+    }
+    else {
+      writeLine("Invalid args")
+      returnCtrl()
+    }
+  }
+  elseif (Args[1, string] == "sigout" & UserPerms[CurrentUserIndex, string]:find("s") <= 0) {
+    writeLine("Insufficient permissions.")
+    returnCtrl()
+  }
+  elseif (Cmd == "userlist") {
+    writeLine(Users:count() + " user(s)")
+    writeLine("ID: username [perms]")
+    for (N = 1, Users:count(), 1) {
+      writeLine(N + ": " + Users[N, string] + " [" + UserPerms[N, string] + "]")
+    }
+    returnCtrl()
+  }
+  elseif (Cmd == "whoami") {
+    writeLine(Users[CurrentUserIndex, string])
+    returnCtrl()
+  }
+  elseif (Cmd == "logout") {
+    CurrentRunner = "login"
+    CurrentUserIndex = 0
+    clearScr()
+    writeLine("WireDOS " + WDOS_VERSION)
+    writeLine("System is locked.")
+    writeLine("Please log in.")
+    writeStr("Username: ")
+    returnCtrl()
+  }
+  elseif (Cmd == "reset") {
+    writeLine("Resetting system...")
+    reset()
+  }
+  elseif (Cmd == "") {
+    returnCtrl()
+  }
+  else {
+    writeLine("Invalid command")
+    returnCtrl()
+  }
+}
+function login(Str:string) {
+  Str = Str:replace("\n", ""):trim()
+  CurrentInput = ""
+  MaskInput = 0
+  IsCmdRunning = 1
+  if (UserIndexToLogin != 0) {
+    if (UserCreds[UserIndexToLogin, string] == Str) {
+      clearScr()
+      writeLine("WireDOS " + WDOS_VERSION)
+      writeLine("Logged in as " + Users[UserIndexToLogin, string])
+      CurrentUserIndex = UserIndexToLogin
+      UserIndexToLogin = 0
+      CurrentRunner = ""
+    }
+    else {
+      UserIndexToLogin = 0
+      clearScr()
+      writeLine("WireDOS " + WDOS_VERSION)
+      writeLine("System is locked.")
+      writeLine("Please log in.")
+      writeLine("[!] Incorrect password.")
+      writeStr("Username: ")
+    }
+  }
+  else {
+    for (N = 0, Users:count(), 1) {
+      if (Users[N, string] == Str) {
+        UserIndexToLogin = N
+      }
+    }
+    if (UserIndexToLogin != 0) {
+      writeStr("Password: ")
+      MaskInput = 1
+    }
+    else {
+      clearScr()
+      writeLine("WireDOS " + WDOS_VERSION)
+      writeLine("System is locked.")
+      writeLine("Please log in.")
+      writeLine("[!] That user doesn't exist.")
+      writeStr("Username: ")
+    }
+  }
+  returnCtrl()
+}
+
+if (first() | duped()) {
+  clearScr()
+  CScrCurPos = vec2(0, 0)
+  CScrFGColor = 999
+  CScrBGColor = 0
+  CScr[2046] = 1 # enable cursor
+  CScr[2045] = 60 # set cursor address to 0
+  IsCmdRunning = 0
+  CurrentInput = ""
+  CurrentRunner = ""
+  SigOut1 = 0
+  SigOut2 = 0
+  SigOut3 = 0
+  SigOut4 = 0
+  # User Perms: d = list files, r = read files, w = write to files, s = SigOut access, u = user management
+  # Setting up admin user
+  Users[1, string] = "admin"
+  UserCreds[1, string] = "adminpass"
+  UserPerms[1, string] = "drwsu"
+  # Setting up standard user
+  Users[2, string] = "user"
+  UserCreds[2, string] = "pass"
+  UserPerms[2, string] = "dr---"
+  # Setting up standard user
+  Users[3, string] = "guest"
+  UserCreds[3, string] = ""
+  UserPerms[3, string] = "d----"
+  CurrentUserIndex = 2
+  UserIndexToLogin = 0
+  MaskInput = 0
+  Files["readme", string] = "Welcome to WireDOS!"
+  Files["testfile", string] = "Test File Content\nThis is a very long sentence. This is yet another long sentence. Finally, this is the longest sentence so far."
+  writeLine("WireDOS " + WDOS_VERSION)
+  writeLine("[INFO] First run")
+  if (->KbdMem) {
+    writeLine("[ OK ] Keyboard connected")
+  }
+  else {
+    writeLine("[WARN] No keyboard detected.")
+  }
+  writeStr("exec>")
+}
+
+if (~KbdMem) {
+  # don't draw: Null terminator (sent on key up event), LShift, RShift, Ctrl, Tab
+  if (KbdMem == 0 | KbdMem == 154 | KbdMem == 154 | KbdMem == 158 | KbdMem == 9) {}
+  # Backspace
+  elseif (KbdMem == 127) {
+    if (IsCmdRunning == 1 | CurrentInput == "" | CurrentInput:right(1) == "\n") {}
+    else {
+      CScrCurPos = CScrCurPos:setX(CScrCurPos:x() - 1)
+      CScr[2045] = CScr[2045] - 2
+      CurrentInput = CurrentInput:sub(1, 2)
+    }
+  }
+  else {
+    if (MaskInput & KbdMem != 10) {
+      writeStr("*")
+    }
+    else {
+      writeStr(toChar(KbdMem))
+    }
+    CurrentInput += toChar(KbdMem)
+  }
+  if (KbdMem == 10) {
+    if (IsCmdRunning == 1) {}
+    elseif (CurrentRunner != "") {
+      CurrentRunner(CurrentInput)
+    }
+    else {
+      runCommand(CurrentInput)
+    }
+  }
+}
+
+if (~Reset & Reset == 1) {
+  writeLine("[WARN] Hardware reset in 3 seconds!")
+  timer("reset", 3000)
+}
+
+if (~Reset & Reset == 0) {
+  stoptimer("reset") # Cancel reset if user stops pressing Reset button before 3 seconds elapses
+}
+
+if (clk("reset")) {
+  reset()
+}
