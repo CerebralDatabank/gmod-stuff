@@ -1,0 +1,77 @@
+jmp _main
+
+message:
+  db "    Critical System Error", 0
+message2:
+  db "See Sys Admin", 0
+message3:
+  db "  CONTAINMENT FIELD FAILURE", 0
+message4:
+  db "Shut down immediately", 0
+emptystr:
+  db 0
+curpos:
+  db 65536
+
+
+WriteStrLine:
+  mov eax, [curpos]
+  mov ebx, 0
+  WSLLoop:
+    cmp [esi], 0
+    je WSLLoopStrEnd
+    mov [eax], [esi]
+    inc eax
+    mov [eax], edx
+    inc eax
+    inc esi
+    add ebx, 2
+    jmp WSLLoop
+  WSLLoopStrEnd:
+    cmp ebx, 60
+    jge WSLLoopEnd
+    mov [eax], 32
+    inc eax
+    mov [eax], edx
+    inc eax
+    add ebx, 2
+    jmp WSLLoopStrEnd
+  WSLLoopEnd:
+    mov [curpos], eax
+    ret
+
+_main:
+  mov esi, emptystr
+  mov edx, 1000900
+  call WriteStrLine
+  mov esi, message
+  mov edx, 1000900
+  call WriteStrLine
+  mov esi, emptystr
+  mov edx, 1000900
+  call WriteStrLine
+  mov esi, emptystr
+  mov edx, 0000900
+  call WriteStrLine
+  mov esi, message2
+  mov edx, 0000900
+  call WriteStrLine
+  mov esi, emptystr
+  mov edx, 0000900
+  call WriteStrLine
+  mov esi, emptystr
+  mov edx, 1000900
+  call WriteStrLine
+  mov esi, message3
+  mov edx, 1000900
+  call WriteStrLine
+  mov esi, emptystr
+  mov edx, 1000900
+  call WriteStrLine
+  mov esi, emptystr
+  mov edx, 0000900
+  call WriteStrLine
+  mov esi, message4
+  mov edx, 0000900
+  call WriteStrLine
+  int 1
