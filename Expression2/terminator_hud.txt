@@ -1,0 +1,18 @@
+@name Terminator HUD
+@inputs EGP:wirelink
+
+interval(500)
+
+W = egpScrW(owner())
+H = egpScrH(owner())
+
+Font = "Lucida Console"
+Color = vec4(255, 0, 0, 255)
+
+EGP:egpText(1, "ANALYSIS", vec2(20, 270))
+EGP:egpFont(1, Font, 30)
+EGP:egpColor(1, Color)
+
+EGP:egpText(2, randint(100000, 999999) + " " + randint(100, 999) + " " + randint(10, 99), vec2(20, 300))
+EGP:egpFont(2, Font, 30)
+EGP:egpColor(2, Color)
