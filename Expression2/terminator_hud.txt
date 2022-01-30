@@ -7,12 +7,23 @@ W = egpScrW(owner())
 H = egpScrH(owner())
 
 Font = "Lucida Console"
-Color = vec4(255, 0, 0, 255)
+Color = vec4(255, 0, 0, 170)
 
-EGP:egpText(1, "ANALYSIS", vec2(20, 270))
+# All y-values are multiples of 30 (the font size)
+
+EGP:egpText(1, "ANALYSIS:", vec2(20, 270))
 EGP:egpFont(1, Font, 30)
 EGP:egpColor(1, Color)
 
-EGP:egpText(2, randint(100000, 999999) + " " + randint(100, 999) + " " + randint(10, 99), vec2(20, 300))
+EGP:egpText(2, "***************", vec2(20, 300))
 EGP:egpFont(2, Font, 30)
 EGP:egpColor(2, Color)
+
+# Text IDs from 3 to 3 + 15 = 18, up to y = 780
+for (I = 0, 15) {
+    EGP:egpText(3 + I, randint(100000, 999999) + " " + randint(100, 999) + " " + randint(10, 99), vec2(20, 330 + (30 * I)))
+    EGP:egpFont(3 + I, Font, 30)
+    EGP:egpColor(3 + I, Color)
+}
+
+EGP:egpText(19, "COMMAND MODE", vec2(20, 840))
