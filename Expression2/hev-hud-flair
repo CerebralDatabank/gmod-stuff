@@ -1,0 +1,38 @@
+@name Mjolnir HUD
+@inputs EGP:wirelink
+
+interval(500)
+
+W = egpScrW(owner())
+H = egpScrH(owner())
+
+Font = "Consolas"
+Color = vec4(255, 220, 0, 255)
+
+# Clear slots
+for (I = 1, 20) {
+    EGP:egpText(I, "", vec2(20, 330 + (30 * I)))
+    EGP:egpFont(I, Font, 30)
+    EGP:egpColor(I, Color)
+}
+
+EGP:egpText(1, "BLACK MESA", vec2(20, 270))
+EGP:egpFont(1, Font, 30)
+EGP:egpColor(1, Color)
+
+EGP:egpText(2, "BMRF HEV Mark IV Suit", vec2(20, 300))
+EGP:egpFont(2, Font, 30)
+EGP:egpColor(2, Color)
+
+EGP:egpText(16, "PARAMETERS", vec2(20, 330 + 390))
+EGP:egpFont(16, Font, 30)
+EGP:egpColor(16, Color)
+for (I = 14, 15) {
+    EGP:egpText(3 + I, randint(100000, 999999) + " " + randint(100, 999) + " " + randint(10, 99), vec2(20, 330 + (30 * I)))
+    EGP:egpFont(3 + I, Font, 30)
+    EGP:egpColor(3 + I, Color)
+}
+
+EGP:egpText(19, "ALL SYSTEMS ONLINE", vec2(20, 840))
+EGP:egpFont(19, Font, 20)
+EGP:egpColor(19, Color)
