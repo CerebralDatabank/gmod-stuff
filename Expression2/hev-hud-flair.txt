@@ -1,4 +1,4 @@
-@name Mjolnir HUD
+@name HEV Suit HUD
 @inputs EGP:wirelink
 
 interval(500)
