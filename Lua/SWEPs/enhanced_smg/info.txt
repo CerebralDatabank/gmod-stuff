@@ -1,0 +1,11 @@
+"AddonInfo"
+{
+  "name"                "Gopal's Enhanced SMG"
+  "version"             ""
+  "up_date"             ""
+  "author_name"         "Gopal Othayoth"
+  "author_email"        ""
+  "author_url"	        "https://cerebraldatabank.neocities.org/"
+  "info"                ""
+  "override"            "0"
+}
