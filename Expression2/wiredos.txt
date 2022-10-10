@@ -4,7 +4,7 @@
 @persist CScrCurPos:vector2 CScrFGColor CScrBGColor IsCmdRunning CurrentInput:string CurrentRunner:string Users:array UserCreds:array UserPerms:array CurrentUserIndex UserIndexToLogin MaskInput Files:table
 @trigger all
 
-WDOS_VERSION = "v0.2.8"
+WDOS_VERSION = "v0.2.9"
 
 function void clearScr() {
   CScr[2041] = 1 # clear screen
@@ -102,6 +102,9 @@ function void runCommand(Cmd:string) {
         clearScr()
         writeLine(Args[2, string]:upper())
         writeLine(Files[Args[2, string], string])
+        for (N = 1, 15, 1) {
+            writeLine("")
+        }
         returnCtrl()
       }
       else {
@@ -319,12 +322,16 @@ if (~KbdMem) {
 }
 
 if (~Reset & Reset == 1) {
+  writeLine("")
   writeLine("[WARN] Hardware reset in 3 seconds!")
   timer("reset", 3000)
 }
 
 if (~Reset & Reset == 0) {
   stoptimer("reset") # Cancel reset if user stops pressing Reset button before 3 seconds elapses
+  writeLine("")
+  writeLine("[INFO] Hardware reset canceled.")
+  returnCtrl()
 }
 
 if (clk("reset")) {
