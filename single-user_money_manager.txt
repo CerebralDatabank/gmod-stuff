@@ -1,0 +1,21 @@
+@name Single-User Money Manager
+@inputs EGP:wirelink Add Sub
+@outputs MoneyAmount
+
+if (first() | duped()) {
+  MoneyAmount = 0
+} 
+if (~Add & Add) {
+  MoneyAmount += Add
+}
+if (~Sub & Sub) {
+  MoneyAmount -= Sub
+}
+
+interval(100)
+
+W = egpScrW(owner())
+H = egpScrH(owner())
+
+EGP:egpText(1, "Money: $" + MoneyAmount:toString(), vec2(20, 250))
+EGP:egpFont(1, "Arial", 30)
