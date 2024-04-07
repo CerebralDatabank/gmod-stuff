@@ -16,8 +16,8 @@ Use caution when installing scripts from random sources - they may be malicious.
 4. Click the settings button (gear icon) on the bottom-right below the game picture
 5. Go to Manage → Browse Local Files
 6. If you want, click on the location bar in File Explorer or press Ctrl + L, copy the path, and do either or both of the following for easy access:
-    1. Press Windows + R to open the Run dialog, paste in the path, and press Enter. It will now be saved in the Run dialog's suggestions dropdown.
-    2. Press Windows + S, search for "Edit environment variables for your account", and press Enter. Click "New", paste the path into the "Variable value:" box, type `GMODGAMEDIR` (or whatever you want) in the "Variable name:" box, and press Enter. Click "OK" to close the box. You should now be able to access the folder using `%GMODGAMEDIR%` (or whatever name you chose) in the file explorer, Run dialog, command line, and other places. You can use it in whole paths, too; if you are installing a Wiremod script according to the instructions below, for example, you can type `%GMODGAMEDIR%\garrysmod\data` in the file explorer or Search to open that folder.
+   1. Press Windows + R to open the Run dialog, paste in the path, and press Enter. It will now be saved in the Run dialog's suggestions dropdown.
+   2. Press Windows + S, search for "Edit environment variables for your account", and press Enter. Click "New", paste the path into the "Variable value:" box, type `GMODGAMEDIR` (or whatever you want) in the "Variable name:" box, and press Enter. Click "OK" to close the box. You should now be able to access the folder using `%GMODGAMEDIR%` (or whatever name you chose) in the file explorer, Run dialog, command line, and other places. You can use it in whole paths, too; if you are installing a Wiremod script according to the instructions below, for example, you can type `%GMODGAMEDIR%\garrysmod\data` in the file explorer or Search to open that folder.
 
 ## How to install Wiremod scripts
 
